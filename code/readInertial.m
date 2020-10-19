@@ -13,11 +13,9 @@ function [accImu, angImu, timeImu] = readInertial(dataset)
 fprintf('%s', repmat('-', 1, 60));
 fprintf('\nReading inertial data (%s)\n', dataset);
 
-basePath = sprintf('../data/%s/',dataset);
-
 % Read accelerometer readings
-if exist([basePath 'accelerometer.txt'],'file')
-    fileID = fopen([basePath 'accelerometer.txt']);
+if exist([dataset 'accelerometer.txt'],'file')
+    fileID = fopen([dataset 'accelerometer.txt']);
     acc = textscan(fileID,'%f %f %f %f');
     fclose(fileID);
     timeAcc = 1e-9*acc{1};
@@ -27,8 +25,8 @@ else
 end
 
 % Read gyroscope readings
-if exist([basePath 'gyroscope.txt'],'file')
-    fileID = fopen([basePath 'gyroscope.txt']);
+if exist([dataset 'gyroscope.txt'],'file')
+    fileID = fopen([dataset 'gyroscope.txt']);
     gyr = textscan(fileID,'%f %f %f %f');
     fclose(fileID);
     timeGyr = 1e-9*gyr{1};

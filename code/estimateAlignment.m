@@ -35,7 +35,6 @@ qtDiffs = diff(qtVis);
 qtDiffs = [qtDiffs; qtDiffs(end,:)]';
 angVis = -(2/dt)*qt_mul(qtDiffs, qt_inv(qtVis'));
 angVis = angVis(2:4,:)';
-
 % Smooth angular velocities
 angVis(:,1) = smooth(angVis(:,1),15);
 angVis(:,2) = smooth(angVis(:,2),15);
@@ -43,6 +42,14 @@ angVis(:,3) = smooth(angVis(:,3),15);
 angImu(:,1) = smooth(angImu(:,1),15);
 angImu(:,2) = smooth(angImu(:,2),15);
 angImu(:,3) = smooth(angImu(:,3),15);
+
+for k = 1:3
+    figure(k);
+    plot(angVis(:, k), 'r');
+    hold on
+    plot(angImu(:, k), 'b');
+    hold off
+end
 
 gRatio = (1 + sqrt(5)) / 2;
 tolerance = 0.0001;
@@ -56,34 +63,57 @@ d = a + (b - a) / gRatio;
 
 iter = 0;
 
-while abs(c - d) > tolerance
-   
-     % Evaluate function at f(c) and f(d)
-    [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,c);
-    [Rsd,biasd,fd] = solveClosedForm(angVis,angImu,t,d);
+% while abs(c - d) > tolerance
+%    
+%      % Evaluate function at f(c) and f(d)
+%     [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,c);
+%     [Rsd,biasd,fd] = solveClosedForm(angVis,angImu,t,d);
+%     fprintf("cost %f and limit %d\n", fc, c);
+%     fprintf("cost %f and limit %d\n", fd, d);    
+%     if fc < fd
+%         b = d;
+%         Rs = Rsc;
+%         bg = biasc;
+%     else
+%         a = c;
+%         Rs = Rsd;
+%         bg = biasd;
+%     end
+%     
+%     c = b - (b - a) / gRatio;
+%     d = a + (b - a) / gRatio;
+%     
+%     iter = iter + 1;
+% end
 
-    if fc < fd
-        b = d;
+% td = (b + a) / 2;
+
+timeInterval = linspace(a,b, 2000);
+minCost = inf;
+td = a;
+
+for k = 1:length(timeInterval)
+    [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,timeInterval(k));
+    if (fc < minCost)
+        minCost = fc;
+        td = timeInterval(k);
         Rs = Rsc;
         bg = biasc;
-    else
-        a = c;
-        Rs = Rsd;
-        bg = biasd;
+        fprintf("Cost: %d\n", fc);
     end
-    
-    c = b - (b - a) / gRatio;
-    d = a + (b - a) / gRatio;
-    
-    iter = iter + 1;
 end
-
-td = (b + a) / 2;
 
 fprintf('Golden-section search (%.0f iterations)\n', iter);
 fprintf('Finished in %.3f seconds\n', toc);
-
-
+angVis = interp1(t-td,angVis,t,'linear','extrap');
+angImu = angImu*Rs + repmat(bg, size(angImu,1),1);
+for k = 1:3
+    figure(k+3);
+    plot(angVis(:, k), 'r');
+    hold on
+    plot(angImu(:, k), 'b');
+    hold off
+end
 end
 
 
@@ -105,15 +135,21 @@ function [Rs,bias,f] = solveClosedForm(angVis,angImu,t,td)
 
 % Adjust visual angular velocities based on current offset
 angVis = interp1(t-td,angVis,t,'linear','extrap');
-N = size(angVis,1);
+squaredVelocity = sum(angVis.^2, 2);
+K = 150;
+[~, indMax] = maxk(squaredVelocity, K);
+indKeep = true(size(angVis,1),1);
+indKeep(indMax) = false;
+
+N = size(angVis, 1);
 
 % Compute mean vectors
-meanImu = repmat(mean(angImu),N,1);
-meanVis = repmat(mean(angVis),N,1);
+meanImu = repmat(mean(angImu(indKeep,:)), sum(indKeep), 1);
+meanVis = repmat(mean(angVis(indKeep,:)), sum(indKeep), 1);
 
 % Compute centralized point sets
-P = angImu - meanImu;
-Q = angVis - meanVis;
+P = angImu(indKeep,:) - meanImu;
+Q = angVis(indKeep,:) - meanVis;
 
 % Singular value decomposition
 [U,S,V] = svd(P'*Q);
@@ -127,11 +163,14 @@ end
 Rs = V*C*U';
 
 % Find the translation, which is the gyroscope bias
-bias = mean(angVis) - mean(angImu)*Rs;
+bias = mean(angVis(indKeep,:)) - mean(angImu(indKeep,:))*Rs;
 
 % Residual
-D = angVis - (angImu*Rs + repmat(bias,N,1));
-f = sum(D(:).^2);
+D = angVis(indKeep, :) - (angImu(indKeep,:)*Rs + repmat(bias,sum(indKeep),1));
+errors = sort(sum(D.^2,2));
+% f = sum(D(:).^2);
+% f = sum(errors(1:end-15));
+f = sum(errors);
 
 end
 

@@ -14,11 +14,9 @@ function [posVis, qtVis, timeVis, scaleGT] = readVisual(dataset)
 fprintf('%s', repmat('-', 1, 60));
 fprintf('\nReading visual data (%s)\n', dataset);
 
-basePath = sprintf('../data/%s/',dataset);
-
 % Read camera poses
-if exist([basePath 'poses.txt'],'file')
-    fileID = fopen([basePath 'poses.txt']);
+if exist([dataset 'poses.txt'],'file')
+    fileID = fopen([dataset 'poses.txt']);
     vis = textscan(fileID,'%f %f %f %f %f %f %f %f');
     fclose(fileID);
     timeVis = vis{1};
@@ -30,7 +28,7 @@ else
 end
 
 % Read ground truth scale if defined
-if exist([basePath 'groundtruth.txt'],'file')
+if exist([dataset 'groundtruth.txt'],'file')
     fileID = fopen([basePath 'groundtruth.txt']);
     gt = textscan(fileID,'%f');
     fclose(fileID);

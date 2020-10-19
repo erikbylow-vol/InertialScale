@@ -15,16 +15,17 @@ freqRange = (f <= fmax);
 fprintf('Upper limit for the frequencies = %.2f Hz\n',fmax);
 
 % Optimize while enforcing gravity constraint: norm(g) = 9.82
-options = optimoptions(@fmincon, 'Display', 'off');
+% options = optimset(fmincon, 'Display', 'off');
 gConst = @gravityConstraint;
-
+gravity0 = (9.8/norm(gravity0))*gravity0;
 x0 = [scale0; gravity0; bias0];
 x = fmincon(@(x)minFunc(x, A, b, freqRange), ...
-    x0, [],[],[],[],[],[],gConst,options);
+    x0, [],[],[],[],[],[],gConst);
 
 scale = x(1);
 gravity = x(2:4);
 bias = x(5:7);
+fprintf('Error: %.5f\n', minFunc(x, A, b, freqRange));
 
 fprintf('Finished in %.3f seconds\n', toc);
 
