@@ -12,8 +12,9 @@ clear all
 close all
 addpath quaternions
 
-base_path = "/Users/erikbylow/Code/Reconstruction/reports/moby/imu_test/"
-suffix = "2*"
+% base_path = "/Users/erikbylow/Code/Reconstruction/reports/moby/imu_test/"
+base_path = "/home/erikbylow/Code/myFork/InertialScale/data/";
+suffix = "D*";
 % Run the scale estimation using the following dataset
 datasets = dir(strcat(base_path, suffix));
 
@@ -42,7 +43,8 @@ for k = 1:length(datasets)
     % Perform final estimation in the frequency domain while enforcing
     % gravity constraint: norm(g) = 9.81
     [scale,gravity,bias] = estimateScale(A,b,s0,g0,b0,t);
-
+    
+    transformImuAcc(gravity, bias, qtVis, accImu, accVis, scale);
     fprintf('%s', repmat('-', 1, 60));
     fprintf('\nFinal estimates\n');
     if (scaleGT > 0)
