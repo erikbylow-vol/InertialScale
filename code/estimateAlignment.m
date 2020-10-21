@@ -29,7 +29,7 @@ angImu = angImu(1:length(tImu),:);
 t = tImu;
 dt = mean(diff(t));
 qtVis = interp1(tVis,qtVis,t,'linear','extrap'); % Consider using SLERP
-
+qtVis = qtVis./sqrt(sum(qtVis.^2,2));
 % Compute visual angular velocities
 qtDiffs = diff(qtVis);
 qtDiffs = [qtDiffs; qtDiffs(end,:)]';
@@ -63,45 +63,44 @@ d = a + (b - a) / gRatio;
 
 iter = 0;
 
-% while abs(c - d) > tolerance
-%    
-%      % Evaluate function at f(c) and f(d)
-%     [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,c);
-%     [Rsd,biasd,fd] = solveClosedForm(angVis,angImu,t,d);
-%     fprintf("cost %f and limit %d\n", fc, c);
-%     fprintf("cost %f and limit %d\n", fd, d);    
-%     if fc < fd
-%         b = d;
-%         Rs = Rsc;
-%         bg = biasc;
-%     else
-%         a = c;
-%         Rs = Rsd;
-%         bg = biasd;
-%     end
-%     
-%     c = b - (b - a) / gRatio;
-%     d = a + (b - a) / gRatio;
-%     
-%     iter = iter + 1;
-% end
-
-% td = (b + a) / 2;
-
-timeInterval = linspace(a,b, 2000);
-minCost = inf;
-td = a;
-
-for k = 1:length(timeInterval)
-    [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,timeInterval(k));
-    if (fc < minCost)
-        minCost = fc;
-        td = timeInterval(k);
+while abs(c - d) > tolerance
+     % Evaluate function at f(c) and f(d)
+    [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,c);
+    [Rsd,biasd,fd] = solveClosedForm(angVis,angImu,t,d);
+    fprintf("cost %f and limit %d\n", fc, c);
+    fprintf("cost %f and limit %d\n", fd, d);    
+    if fc < fd
+        b = d;
         Rs = Rsc;
         bg = biasc;
-        fprintf("Cost: %d\n", fc);
+    else
+        a = c;
+        Rs = Rsd;
+        bg = biasd;
     end
+    
+    c = b - (b - a) / gRatio;
+    d = a + (b - a) / gRatio;
+    
+    iter = iter + 1;
 end
+
+td = (b + a) / 2;
+
+% timeInterval = linspace(a,b, 2000);
+% minCost = inf;
+% td = a;
+% 
+% for k = 1:length(timeInterval)
+%     [Rsc,biasc,fc] = solveClosedForm(angVis,angImu,t,timeInterval(k));
+%     if (fc < minCost)
+%         minCost = fc;
+%         td = timeInterval(k);
+%         Rs = Rsc;
+%         bg = biasc;
+%         fprintf("Cost: %d\n", fc);
+%     end
+% end
 
 fprintf('Golden-section search (%.0f iterations)\n', iter);
 fprintf('Finished in %.3f seconds\n', toc);

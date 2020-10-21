@@ -1,4 +1,4 @@
-function [accImu, angImu, timeImu] = readInertial(dataset)
+function [accImu, angImu, timeImu, userAccImu] = readInertial(dataset)
 %
 % Read inertial measurements and timestamps from the input files. 
 % See the README.txt for more information about the input format.
@@ -22,6 +22,17 @@ if exist([dataset 'accelerometer.txt'],'file')
     accImu = [acc{2} acc{3} acc{4}];
 else
    error('accelerometer.txt not found! Check inputs.'); 
+end
+
+% Read accelerometer readings
+if exist([dataset 'user_accelerometer.txt'],'file')
+    fileID = fopen([dataset 'user_accelerometer.txt']);
+    acc = textscan(fileID,'%f %f %f %f');
+    fclose(fileID);
+    timeAcc = 1e-9*acc{1};
+    userAccImu = [acc{2} acc{3} acc{4}];
+else
+    userAccImu = [];
 end
 
 % Read gyroscope readings

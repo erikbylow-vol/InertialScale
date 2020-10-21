@@ -29,7 +29,7 @@ end
 
 % Read ground truth scale if defined
 if exist([dataset 'groundtruth.txt'],'file')
-    fileID = fopen([basePath 'groundtruth.txt']);
+    fileID = fopen([dataset 'groundtruth.txt']);
     gt = textscan(fileID,'%f');
     fclose(fileID);
     scaleGT = gt{1};

@@ -30,9 +30,18 @@ accImu = accImu(1:length(tImu),:);
 t = tImu;
 accVis = interp1(tVis-td,accVis,t,'linear','extrap');
 qtVis = interp1(tVis-td,qtVis,t,'linear','extrap'); % Consider using SLERP
+qtVis = qtVis./sqrt(sum(qtVis.^2,2));
 
 % Spatial alignment
 accImu = accImu*Rs;
+
+% for k = 1:3
+%     figure(k);
+%     plot(accVis(:, k), 'r');
+%     hold on
+%     plot(accImu(:, k), 'b');
+%     hold off
+% end
 
 end
 

@@ -1,5 +1,5 @@
-function [scale,gravity,bias] = ...
-    estimateScale(A,b,scale0,gravity0,bias0,t)
+function [scale, bias] = ...
+    estimateScale(A,b,scale0,bias0,t)
 % Estimation is performed in the frequency domain
 
 fprintf('%s', repmat('-', 1, 60));
@@ -16,19 +16,42 @@ fprintf('Upper limit for the frequencies = %.2f Hz\n',fmax);
 
 % Optimize while enforcing gravity constraint: norm(g) = 9.82
 % options = optimset(fmincon, 'Display', 'off');
-gConst = @gravityConstraint;
-gravity0 = (9.8/norm(gravity0))*gravity0;
-x0 = [scale0; gravity0; bias0];
+x0 = [scale0; bias0];
+
+Av = A*x0; % Visual accelerations
+Ai = b;    % Inertial accelerations
+Av = [Av(1:3:end) Av(2:3:end) Av(3:3:end)];
+Ai = [Ai(1:3:end) Ai(2:3:end) Ai(3:3:end)];
+for k = 1:3
+    figure;
+    plot(Av(:, k), 'r');
+    hold on
+    plot(Ai(:,k), 'b');
+    hold off
+end
 x = fmincon(@(x)minFunc(x, A, b, freqRange), ...
-    x0, [],[],[],[],[],[],gConst);
+    x0, [],[],[],[],[],[],[]);
 
 scale = x(1);
-gravity = x(2:4);
-bias = x(5:7);
+bias = x(2:4);
 fprintf('Error: %.5f\n', minFunc(x, A, b, freqRange));
 
 fprintf('Finished in %.3f seconds\n', toc);
 
+Av = A*x; % Visual accelerations
+Ai = b;    % Inertial accelerations
+Av = [Av(1:3:end) Av(2:3:end) Av(3:3:end)];
+Ai = [Ai(1:3:end) Ai(2:3:end) Ai(3:3:end)];
+close all;
+for k = 1:3
+    figure(k+3)
+    plot(Av(:, k), 'r');
+    hold on
+    plot(Ai(:,k), 'b');
+    hold off
+end
+display(scale);
+display(bias)
 end
 
 
