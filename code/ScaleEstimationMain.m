@@ -13,7 +13,6 @@ close all
 addpath quaternions
 METHOD_NAMES = ["arkit"];
 folder = "charuco_imu";
-
 % base_path = "/Users/erikbylow/Code/Reconstruction/reports/moby/imu_test/"
 base_path = "/home/erikbylow/Code/Reconstruction/reports/moby/cameras/" + folder + "/";
 % base_path = "/home/erikbylow/Code/myFork/InertialScale/data/";
@@ -85,11 +84,14 @@ for method = METHOD_NAMES
         toc
         close all
         fprintf(fileID,'%s %f\n', capture, scale);
+        val{k} = getNewJsonWithScale(val{k}, scale);
     end
-    fprintf('bias = [%.4f, %.4f, %.4f]\n',bias);
-    fprintf('td = %.4f seconds\n',td);
-    fprintf('Rs = [%.2f %.2f %.2f; %.2f %.2f %.2f; %.2f %.2f %.2f]\n', Rs');
-    fprintf('\n');
-    toc
-    close all
+    fclose(fileID);
+
+    jsonStr = jsonencode(val);
+    new_method_name = base_path + method + "_scaled.json";
+    fid = fopen(new_method_name, 'w');
+    fwrite(fid, jsonStr, 'char');
+    fclose(fid);
+    
 end
