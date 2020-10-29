@@ -29,6 +29,16 @@ angImu = angImu(1:length(tImu),:);
 t = tImu;
 dt = mean(diff(t));
 qtVis = interp1(tVis,qtVis,t,'linear','extrap'); % Consider using SLERP
+
+% Make q(1) > 0 to enforce consistency in quaternion representation
+% qtVis(qtVis(:,1) < 0, :) = -qtVis(qtVis(:,1) < 0, :);
+
+for k = 2:length(qtVis)
+    if (norm(qtVis(k-1,:) - qtVis(k,:)) > 1)
+        qtVis(k,:) = -qtVis(k,:);
+    end
+end
+
 qtVis = qtVis./sqrt(sum(qtVis.^2,2));
 % Compute visual angular velocities
 qtDiffs = diff(qtVis);
