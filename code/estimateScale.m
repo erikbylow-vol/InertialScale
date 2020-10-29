@@ -37,17 +37,24 @@ bias = x(2:4);
 fprintf('Error: %.5f\n', minFunc(x, A, b, freqRange));
 
 fprintf('Finished in %.3f seconds\n', toc);
-
 Av = A*x; % Visual accelerations
 Ai = b;    % Inertial accelerations
 Av = [Av(1:3:end) Av(2:3:end) Av(3:3:end)];
 Ai = [Ai(1:3:end) Ai(2:3:end) Ai(3:3:end)];
+AiSmooth(:,1) = smooth(Ai(:,1),35);
+AiSmooth(:,2) = smooth(Ai(:,2),35);
+AiSmooth(:,3) = smooth(Ai(:,3),35);
 close all;
 for k = 1:3
     figure(k+3)
     plot(Av(:, k), 'r');
     hold on
-    plot(Ai(:,k), 'b');
+    plot(Ai(:, k), 'b');
+    hold off
+    figure(k+6);
+    plot(Av(:,k), 'r');
+    hold on
+    plot(AiSmooth(:, k), 'g');
     hold off
 end
 display(scale);
