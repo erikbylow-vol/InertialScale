@@ -11,9 +11,11 @@ tic
 clear all
 close all
 addpath quaternions
+METHOD_NAMES = ["arkit"];
+folder = "charuco_imu";
 
 % base_path = "/Users/erikbylow/Code/Reconstruction/reports/moby/imu_test/"
-base_path = "/home/erikbylow/Code/Reconstruction/reports/moby/imu_test/";
+base_path = "/home/erikbylow/Code/Reconstruction/reports/moby/cameras/" + folder + "/";
 % base_path = "/home/erikbylow/Code/myFork/InertialScale/data/";
 
 suffix = "2*";
