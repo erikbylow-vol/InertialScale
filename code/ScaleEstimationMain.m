@@ -21,12 +21,17 @@ base_path = "/home/erikbylow/Code/Reconstruction/reports/moby/cameras/" + folder
 suffix = "2*";
 % Run the scale estimation using the following dataset
 datasets = dir(strcat(base_path, suffix));
+for method = METHOD_NAMES
+    fileID = fopen(method + "_" + folder + ".txt", 'w');
+    fname = base_path + method + ".json";
+    val = jsondecode(fileread(fname));
+    for k = 1:length(datasets)
+        capture = datasets(k).name;
+        % Read camera poses and timestamps
+        dataset = sprintf('%s%s/%s/', base_path, capture, method);
+        [posVis,qtVis,tVis,scaleGT] = readVisual(dataset);
+        posVis = poseToWorldFrame(posVis, qtVis);
 
-for k = 1:length(datasets)
-    % Read camera poses and timestamps
-    dataset = sprintf('%s%s/', base_path, datasets(k).name);
-    [posVis,qtVis,tVis,scaleGT] = readVisual(dataset);
-    posVis = poseToWorldFrame(posVis, qtVis);
 
     % Read inertial measurements and timestamps
     [accImu,angImu,tImu, userAccImu] = readInertial(dataset);
